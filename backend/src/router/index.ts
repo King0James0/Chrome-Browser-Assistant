@@ -80,6 +80,7 @@ export function buildRouterFromConfig(): ModelRouter {
       provider: 'openai-compat',
       baseUrl: p.vllm.baseUrl,
       upstreamModel: p.vllm.model,
+      stripLeadingThinking: true,
     });
   }
 

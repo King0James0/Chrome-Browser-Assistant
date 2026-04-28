@@ -64,6 +64,10 @@ async function main() {
         const state = sessions.get(clientId) ?? { history: [] };
         sessions.set(clientId, state);
         await handleChatRequest(msg, state, router, send);
+      } else if (msg.kind === 'clear-history') {
+        const state = sessions.get(clientId);
+        if (state) state.history = [];
+        console.log(`[ws] client ${clientId} cleared history`);
       }
     },
   });

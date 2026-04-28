@@ -29,11 +29,17 @@ export default function Bubble({
         top: position.y,
         width: size,
         height: size,
+        borderRadius: '50%',
+        background: 'rgba(28, 30, 38, 0.92)',
+        boxShadow: '0 4px 14px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.06) inset',
+        overflow: 'hidden',
         cursor: isDragging ? 'grabbing' : 'grab',
         userSelect: 'none',
         touchAction: 'none',
-        filter: 'drop-shadow(0 2px 6px rgba(0,0,0,0.25))',
         transition: isDragging ? 'none' : 'left 120ms ease-out, top 120ms ease-out',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
       }}
       onPointerDown={onPointerDown}
       onClick={() => {
@@ -44,7 +50,12 @@ export default function Bubble({
         src={avatarSrc}
         alt=""
         draggable={false}
-        style={{ width: '100%', height: '100%', pointerEvents: 'none' }}
+        style={{
+          width: '78%',
+          height: '78%',
+          objectFit: 'contain',
+          pointerEvents: 'none',
+        }}
       />
     </div>
   );

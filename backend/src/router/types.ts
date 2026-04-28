@@ -40,4 +40,11 @@ export interface ModelRegistration {
   baseUrl?: string;
   apiKey?: string;
   upstreamModel: string;
+  /**
+   * When true, treat the start of each text stream as model "thinking" and
+   * discard everything up to (and including) the first `</think>` close tag.
+   * Re-entries via `<think>...</think>` are also stripped. Needed for models
+   * that leak reasoning into delta.content (e.g. Nemotron via vLLM).
+   */
+  stripLeadingThinking?: boolean;
 }

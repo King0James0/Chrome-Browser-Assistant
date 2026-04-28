@@ -1,10 +1,12 @@
 import 'dotenv/config';
+import { getDownloadsPath } from './lib/downloads-path';
 
 export const config = {
   backendHost: process.env.BACKEND_HOST ?? '127.0.0.1',
   backendPort: Number(process.env.BACKEND_PORT ?? '50090'),
   routerPort: Number(process.env.ROUTER_PORT ?? '50091'),
   dataDir: process.env.DATA_DIR ?? './data',
+  screenshotsDir: process.env.SCREENSHOTS_DIR ?? getDownloadsPath(),
   chromeDebugPort: Number(process.env.CHROME_DEBUG_PORT ?? '9222'),
   chromeUserDataDir: process.env.CHROME_USER_DATA_DIR,
   defaultModel: process.env.DEFAULT_MODEL ?? '',

@@ -4,8 +4,11 @@
   "version": "0.0.1",
   "type": "module",
   "scripts": {
+    "predev": "node scripts/kill-ports.mjs",
     "dev": "tsx watch src/server.ts",
+    "prestart": "node scripts/kill-ports.mjs",
     "start": "node --import tsx src/server.ts",
+    "kill": "node scripts/kill-ports.mjs",
     "build": "tsc",
     "type-check": "tsc --noEmit"
   },

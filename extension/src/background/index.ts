@@ -25,12 +25,31 @@ function connect(): void {
     console.warn('[bg] socket error', err);
   });
 
-  socket.addEventListener('message', (event) => {
+  socket.addEventListener('message', async (event) => {
+    let msg: WSMessage;
     try {
-      const msg = JSON.parse(event.data) as WSMessage;
-      chrome.runtime.sendMessage(msg).catch(() => {});
+      msg = JSON.parse(event.data) as WSMessage;
     } catch (err) {
       console.warn('[bg] failed to parse backend message', err);
+      return;
+    }
+    try {
+      const tabs = await chrome.tabs.query({});
+      let delivered = 0;
+      for (const tab of tabs) {
+        if (tab.id === undefined) continue;
+        try {
+          await chrome.tabs.sendMessage(tab.id, msg);
+          delivered += 1;
+        } catch {
+          // tab has no content script (chrome://, etc.) — skip
+        }
+      }
+      if (delivered === 0) {
+        console.warn('[bg] no tabs received', msg.kind);
+      }
+    } catch (err) {
+      console.warn('[bg] tab fanout failed', err);
     }
   });
 }
@@ -47,10 +66,25 @@ chrome.runtime.onMessage.addListener((msg: WSMessage, _sender, sendResponse) => 
     sendResponse(reply);
     return false;
   }
+  if (msg.kind === 'download-blob') {
+    chrome.downloads
+      .download({ url: msg.url, filename: msg.filename, saveAs: false })
+      .then((id) => {
+        console.log('[bg] download started', id, msg.filename);
+        sendResponse({ ok: true, id });
+      })
+      .catch((err) => {
+        console.warn('[bg] download failed', err);
+        sendResponse({ ok: false, error: err instanceof Error ? err.message : String(err) });
+      });
+    return true;
+  }
   if (socket?.readyState === WebSocket.OPEN) {
+    console.log('[bg] forward', msg.kind);
     socket.send(JSON.stringify(msg));
     sendResponse({ ok: true });
   } else {
+    console.warn('[bg] socket not open, dropping', msg.kind, 'state=', socket?.readyState);
     sendResponse({ ok: false, error: 'backend not connected' });
   }
   return true;

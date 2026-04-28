@@ -1,5 +1,8 @@
+import fs from 'node:fs';
+import path from 'node:path';
 import type { Page } from 'playwright';
 import { z } from 'zod';
+import { config } from '../config';
 import type { ToolCall, ToolDefinition } from '../router/types';
 
 type ToolSpec = {
@@ -187,20 +190,45 @@ const tools: Record<string, ToolSpec> = {
     definition: {
       name: 'screenshot',
       description:
-        'Capture a PNG screenshot of the viewport or an element. Returns base64-encoded bytes.',
+        'Capture a PNG screenshot. Default (no selector) captures the VISIBLE VIEWPORT — what the user sees right now. Pass a selector ONLY to capture a specific element. Do NOT pass "body" or "html" as selector; omit selector for the viewport. Image is shown to the user automatically — do not inline base64 in your response.',
       parameters: {
         type: 'object',
         properties: {
-          selector: { type: 'string', description: 'Optional element selector; default is viewport' },
+          selector: {
+            type: 'string',
+            description: 'OPTIONAL element selector. Omit for visible viewport (most common).',
+          },
         },
       },
     },
     schema: z.object({ selector: z.string().optional() }),
     async run(page, { selector }) {
-      const png = selector
-        ? await page.locator(selector).first().screenshot()
-        : await page.screenshot();
-      return { mimeType: 'image/png', base64: png.toString('base64') };
+      const isWholeDoc = selector && /^(body|html|:root)$/i.test(selector.trim());
+      let png: Buffer;
+      try {
+        png = selector && !isWholeDoc
+          ? await page.locator(selector).first().screenshot({ timeout: 10000 })
+          : await page.screenshot({ timeout: 10000 });
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        if (/0 width|0 height|viewport/i.test(msg) && !selector) {
+          console.log('[screenshot] viewport screenshot failed, falling back to fullPage');
+          png = await page.screenshot({ fullPage: true, timeout: 30000 });
+        } else {
+          throw err;
+        }
+      }
+      const dir = path.resolve(config.screenshotsDir);
+      fs.mkdirSync(dir, { recursive: true });
+      const filename = `screenshot-${Date.now()}.png`;
+      const fullPath = path.join(dir, filename);
+      fs.writeFileSync(fullPath, png);
+      return {
+        mimeType: 'image/png',
+        base64: png.toString('base64'),
+        savedPath: fullPath,
+        sizeBytes: png.length,
+      };
     },
   }),
 };

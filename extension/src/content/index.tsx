@@ -12,6 +12,16 @@ function mount(): void {
   document.documentElement.appendChild(host);
 
   const shadow = host.attachShadow({ mode: 'open' });
+
+  const style = document.createElement('style');
+  style.textContent = `
+    * { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.22) transparent; }
+    *::-webkit-scrollbar { width: 6px; height: 6px; }
+    *::-webkit-scrollbar-track { background: transparent; }
+    *::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.22); border-radius: 3px; }
+  `;
+  shadow.appendChild(style);
+
   const mountPoint = document.createElement('div');
   shadow.appendChild(mountPoint);
 

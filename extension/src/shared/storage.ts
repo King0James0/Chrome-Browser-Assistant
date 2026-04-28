@@ -3,12 +3,14 @@ export interface Settings {
   avatarId: string;
   avatarDataUrl?: string;
   bubblePosition: { x: number; y: number };
+  chatSize: { width: number; height: number };
 }
 
 const DEFAULT_SETTINGS: Settings = {
   defaultModel: '',
   avatarId: 'astronaut',
   bubblePosition: { x: -1, y: -1 },
+  chatSize: { width: 360, height: 440 },
 };
 
 export async function getSettings(): Promise<Settings> {

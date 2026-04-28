@@ -10,7 +10,9 @@ export type WSMessage =
   | { kind: 'chat-response'; chunk: string; done: boolean }
   | { kind: 'tool-call'; tool: string; args: Record<string, unknown> }
   | { kind: 'tool-result'; result: unknown; error?: string }
+  | { kind: 'clear-history' }
   | { kind: 'toggle-overlay' }
+  | { kind: 'download-blob'; url: string; filename: string }
   | { kind: 'ping' }
   | { kind: 'pong'; connected: boolean }
   | { kind: 'error'; message: string };

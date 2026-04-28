@@ -60,8 +60,8 @@ export function useDraggable(opts: DraggableOptions) {
       const snap = optsRef.current.edgeSnapDistance ?? 24;
       const size = optsRef.current.bubbleSize ?? 64;
       setPosition((p) => {
-        const w = window.innerWidth;
-        const h = window.innerHeight;
+        const w = document.documentElement.clientWidth;
+        const h = document.documentElement.clientHeight;
         let { x, y } = p;
         if (x < snap) x = 0;
         else if (x > w - snap - size) x = w - size;

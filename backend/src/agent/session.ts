@@ -14,6 +14,13 @@ export async function getChromeSession(debugPort: number): Promise<ModeAConnecti
   return session;
 }
 
+const ACCEPTABLE_PREFIXES = ['http://', 'https://', 'file://'];
+
+function isAcceptableUrl(url: string): boolean {
+  if (!url) return false;
+  return ACCEPTABLE_PREFIXES.some((p) => url.startsWith(p));
+}
+
 export async function selectActivePage(
   s: ModeAConnection,
   ctx: PageContext | undefined,
@@ -22,14 +29,28 @@ export async function selectActivePage(
   if (pages.length === 0) {
     throw new Error('No tabs found in user Chrome — open at least one tab and try again.');
   }
-  if (ctx?.url) {
+
+  if (ctx?.url && isAcceptableUrl(ctx.url)) {
     const exact = pages.find((p) => p.url() === ctx.url);
     if (exact) return exact;
     const stripped = stripFragment(ctx.url);
     const fuzzy = pages.find((p) => stripFragment(p.url()) === stripped);
     if (fuzzy) return fuzzy;
   }
-  return pages[pages.length - 1]!;
+
+  const allowed = pages.filter((p) => isAcceptableUrl(p.url()));
+  if (allowed.length === 0) {
+    const summary = pages
+      .map((p) => p.url() || '<blank>')
+      .slice(0, 5)
+      .join(', ');
+    const ctxNote = ctx?.url ? ` Your bubble reported being on: ${ctx.url}` : '';
+    throw new Error(
+      `No http(s) content tabs available. Tabs in this Chrome: ${summary}.${ctxNote} ` +
+        `Switch to a real web page and try again.`,
+    );
+  }
+  return allowed[allowed.length - 1]!;
 }
 
 function stripFragment(url: string): string {

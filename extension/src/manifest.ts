@@ -6,7 +6,7 @@ export default defineManifest({
   name: 'Chrome-Browser-Assistant',
   description: 'An LLM-powered agent overlay for your browser.',
   version: pkg.version,
-  permissions: ['storage', 'scripting', 'activeTab', 'tabs', 'contextMenus'],
+  permissions: ['storage', 'scripting', 'activeTab', 'tabs', 'contextMenus', 'downloads'],
   host_permissions: ['<all_urls>'],
   background: {
     service_worker: 'src/background/index.ts',
