@@ -17,15 +17,24 @@ The minimum viable assistant: floating overlay on every page, talks to whichever
 - Settings UI (model picker, avatar selector, hotkeys)
 - Basic slash commands: `/clear`, `/model`, `/save`, `/help`
 
-## Phase 1b — Mode B headless ◯
+## Phase 1b — Mode B headless + tool surface upgrade ◯
 
-Background research without taking over your real browser.
+Background research without taking over your real browser, and a wider tool set so the agent can do more in fewer round-trips.
 
+**Mode B (headless):**
 - Headless Chromium pool managed by the backend
 - `/research` slash command that hands a topic + brief to a parallel agent loop
 - Streaming progress to the bubble while it works
 - Research artifacts persisted to `${DATA_DIR}/research/<timestamp>.md`
 - Multiple concurrent headless tasks
+
+**Tool surface upgrade (applies to both Mode A and Mode B):**
+- `snapshot` — accessibility-tree dump with stable element refs (`@0-5` style). Default observation primitive in place of screenshot for most flows; saves vision tokens and eliminates hallucinated selectors. `click` accepts refs from snapshot in addition to selectors.
+- `is_visible <selector>` — boolean predicate, cheap pre-check before action
+- `is_checked <selector>` — boolean predicate for checkboxes / radio
+- `wait load|selector|timeout` — explicit synchronization (page load event / selector appearance / fixed sleep)
+- `fill <selector> <value>` — locate, clear, set value, optional Enter; idempotent. Higher-level than `type` (which still exists for focus-typed input).
+- Tab management: `pages` (list open tabs), `tab_switch <index>`, `tab_close [index]` — handles `target=_blank`, OAuth popups, and link-fan-out flows that the single-current-tab heuristic can't follow.
 
 ## Phase 1c — Polish ◯
 
