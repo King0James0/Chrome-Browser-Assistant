@@ -204,6 +204,16 @@ const tools: Record<string, ToolSpec> = {
     schema: z.object({ selector: z.string().optional() }),
     async run(page, { selector }) {
       const isWholeDoc = selector && /^(body|html|:root)$/i.test(selector.trim());
+      const OVERLAY_HOST_ID = 'chrome-browser-assistant-overlay-host';
+      await page
+        .evaluate((id: string) => {
+          const doc = (globalThis as { document?: unknown }).document as
+            | { getElementById: (s: string) => { style: { visibility: string } } | null }
+            | undefined;
+          const el = doc?.getElementById(id);
+          if (el) el.style.visibility = 'hidden';
+        }, OVERLAY_HOST_ID)
+        .catch(() => {});
       let png: Buffer;
       try {
         png = selector && !isWholeDoc
@@ -217,6 +227,16 @@ const tools: Record<string, ToolSpec> = {
         } else {
           throw err;
         }
+      } finally {
+        await page
+          .evaluate((id: string) => {
+            const doc = (globalThis as { document?: unknown }).document as
+              | { getElementById: (s: string) => { style: { visibility: string } } | null }
+              | undefined;
+            const el = doc?.getElementById(id);
+            if (el) el.style.visibility = '';
+          }, OVERLAY_HOST_ID)
+          .catch(() => {});
       }
       const dir = path.resolve(config.screenshotsDir);
       fs.mkdirSync(dir, { recursive: true });
