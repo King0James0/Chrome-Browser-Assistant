@@ -76,9 +76,18 @@ export async function handleChatRequest(
     return;
   }
 
-  const userPrompt = msg.pageContext
-    ? `Current page: ${msg.pageContext.url} — "${msg.pageContext.title}"\n\n${msg.text}`
-    : msg.text;
+  let userPrompt = msg.text;
+  if (msg.pageContext) {
+    const lines: string[] = [
+      `Current page: ${msg.pageContext.url} — "${msg.pageContext.title}"`,
+    ];
+    const sel = msg.pageContext.selectedText?.trim();
+    if (sel) {
+      lines.push(`The user has selected the following text on the page:\n"""\n${sel}\n"""`);
+    }
+    lines.push(msg.text);
+    userPrompt = lines.join('\n\n');
+  }
 
   const onChunk = (text: string) =>
     send({ kind: 'chat-response', chunk: text, done: false });
