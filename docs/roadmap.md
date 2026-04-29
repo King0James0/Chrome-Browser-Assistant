@@ -46,6 +46,7 @@ The day-to-day affordances that make it pleasant to actually use, plus the work 
 - Per-domain model preferences (e.g. frontier model on news sites, fast local model on dev docs)
 - Position persistence per tab and across sessions
 - NSSM-based Windows service so the backend starts on login and survives reboots
+- Preserve the page-level highlight visually when the chat input takes focus (today the agent receives the selection correctly via the `selectionchange` listener, but the visible highlight on the page disappears the moment the input is focused — browser default). Likely approach: intercept `mousedown` on the input, `preventDefault()`, focus programmatically, optionally restore the selection range on input blur.
 
 **Production launch path:**
 - `chrome.debugger` transport as the default Mode A path so users don't need to launch Chrome with `--remote-debugging-port` or maintain an isolated profile. Existing Playwright-over-CDP path stays as an opt-in "power user" mode for those who want zero yellow bar and full Playwright surface.
