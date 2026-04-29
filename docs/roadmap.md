@@ -36,15 +36,30 @@ Background research without taking over your real browser, and a wider tool set 
 - `fill <selector> <value>` — locate, clear, set value, optional Enter; idempotent. Higher-level than `type` (which still exists for focus-typed input).
 - Tab management: `pages` (list open tabs), `tab_switch <index>`, `tab_close [index]` — handles `target=_blank`, OAuth popups, and link-fan-out flows that the single-current-tab heuristic can't follow.
 
-## Phase 1c — Polish ◯
+## Phase 1c — Polish + production launch path ◯
 
-The day-to-day affordances that make it pleasant to actually use.
+The day-to-day affordances that make it pleasant to actually use, plus the work needed before non-developer users can install this.
 
+**Polish:**
 - Right-click context menu ("Ask the agent about this"; "Send to space-agent" once Phase 2 lands)
 - Configurable keyboard shortcut to summon/dismiss the bubble
 - Per-domain model preferences (e.g. frontier model on news sites, fast local model on dev docs)
 - Position persistence per tab and across sessions
 - NSSM-based Windows service so the backend starts on login and survives reboots
+
+**Production launch path:**
+- `chrome.debugger` transport as the default Mode A path so users don't need to launch Chrome with `--remote-debugging-port` or maintain an isolated profile. Existing Playwright-over-CDP path stays as an opt-in "power user" mode for those who want zero yellow bar and full Playwright surface.
+- MV3 service-worker lifecycle hardening beyond the chrome.alarms keepalive — investigate `chrome.runtime.onConnect` long-poll + WS health checks for fully reliable cross-suspension behavior.
+
+## Phase 1d — Multimodal chat input ◯
+
+Expand how the user talks to the agent — beyond plain typed text.
+
+- **Capture button** in the chat panel: opens a region-select overlay on the page; user drags to select a rectangle; captured PNG is inserted into the chat as an attachment so the user can ask the agent about that specific area. Different from the existing `screenshot` tool: that one is *agent*-initiated; this one is *user*-initiated.
+- **Attach-file button**: standard file picker; supported types include text/code/markdown (inlined), PDF (parsed text + optional vision), images (sent multimodal), and small CSVs. Per-file size cap so the chat history doesn't blow up. Attachments persist with the chat in SQLite.
+- **Audio input button**: hold-to-talk or press-to-start/stop microphone capture via `getUserMedia` + `MediaRecorder`. Default path: local STT (e.g. Whisper.cpp on the backend) → transcribed text becomes the prompt, with a visible transcript edit step before send. Power-user path (later): direct audio to a multimodal-audio model when one is wired into the router.
+
+Shared infrastructure required: multimodal-aware model routing in the backend (vision and/or audio capability flags per registered model), an `attachments[]` field on `chat-request` WSMessage, attachment storage with a stable handle/URL, and chat-panel UI for the three buttons + inline previews.
 
 ## Phase 2 — Companion workspace builder ◯
 
