@@ -16,7 +16,7 @@
 ## Install
 
 ```bash
-git clone https://github.com/riveraj082/Chrome-Browser-Assistant.git
+git clone https://github.com/King0James0/Chrome-Browser-Assistant.git
 cd Chrome-Browser-Assistant
 npm install
 npx playwright install chromium    # ~150 MB; needed for Mode B (headless)
