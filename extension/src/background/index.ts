@@ -2,6 +2,7 @@ import type { WSMessage } from '../shared/types';
 
 const BACKEND_WS_URL = 'ws://127.0.0.1:50090/ws';
 const RECONNECT_DELAY_MS = 5000;
+const KEEPALIVE_INTERVAL_MS = 20_000;
 
 let socket: WebSocket | null = null;
 
@@ -54,13 +55,25 @@ function connect(): void {
   });
 }
 
+function scheduleKeepalive(): void {
+  setTimeout(async () => {
+    console.log('[bg] keepalive tick');
+    try {
+      await chrome.runtime.getPlatformInfo();
+    } catch {
+      // ignore — only purpose of the call is to reset the SW idle timer
+    }
+    scheduleKeepalive();
+  }, KEEPALIVE_INTERVAL_MS);
+}
+
 chrome.runtime.onInstalled.addListener(() => {
   connect();
-  chrome.alarms.create('keepalive', { periodInMinutes: 0.4 });
+  chrome.alarms.create('keepalive', { periodInMinutes: 0.5 });
 });
 chrome.runtime.onStartup.addListener(() => {
   connect();
-  chrome.alarms.create('keepalive', { periodInMinutes: 0.4 });
+  chrome.alarms.create('keepalive', { periodInMinutes: 0.5 });
 });
 
 chrome.alarms.onAlarm.addListener((alarm) => {
@@ -113,3 +126,4 @@ chrome.commands.onCommand.addListener((command) => {
 });
 
 connect();
+scheduleKeepalive();
