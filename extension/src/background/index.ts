@@ -54,8 +54,20 @@ function connect(): void {
   });
 }
 
-chrome.runtime.onInstalled.addListener(connect);
-chrome.runtime.onStartup.addListener(connect);
+chrome.runtime.onInstalled.addListener(() => {
+  connect();
+  chrome.alarms.create('keepalive', { periodInMinutes: 0.4 });
+});
+chrome.runtime.onStartup.addListener(() => {
+  connect();
+  chrome.alarms.create('keepalive', { periodInMinutes: 0.4 });
+});
+
+chrome.alarms.onAlarm.addListener((alarm) => {
+  if (alarm.name === 'keepalive') {
+    connect();
+  }
+});
 
 chrome.runtime.onMessage.addListener((msg: WSMessage, _sender, sendResponse) => {
   if (msg.kind === 'ping') {
