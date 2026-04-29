@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Bubble from './Bubble';
 import Chat, { type ChatMessageView } from './Chat';
 import { avatarSrc } from './avatars';
@@ -26,6 +26,18 @@ export default function App() {
   const [pending, setPending] = useState(false);
   const [connected, setConnected] = useState(false);
   const [defaultModel, setDefaultModel] = useState('');
+  const lastSelectionRef = useRef('');
+
+  useEffect(() => {
+    const handler = () => {
+      const sel = window.getSelection()?.toString() ?? '';
+      if (sel.trim().length > 0) {
+        lastSelectionRef.current = sel;
+      }
+    };
+    document.addEventListener('selectionchange', handler);
+    return () => document.removeEventListener('selectionchange', handler);
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -117,10 +129,12 @@ export default function App() {
 
     setMessages((prev) => [...prev, { id: randomId(), role: 'user', content: trimmed }]);
     setPending(true);
+    const liveSel = window.getSelection()?.toString() ?? '';
+    const sel = liveSel.trim().length > 0 ? liveSel : lastSelectionRef.current;
     const ctx: PageContext = {
       url: location.href,
       title: document.title,
-      selectedText: window.getSelection()?.toString() || undefined,
+      selectedText: sel.trim().length > 0 ? sel : undefined,
     };
     const msg: WSMessage = {
       kind: 'chat-request',
@@ -130,6 +144,7 @@ export default function App() {
       pageContext: ctx,
     };
     sendMessage(msg);
+    lastSelectionRef.current = '';
   }
 
   function handlePosChange(p: Position) {
@@ -143,6 +158,11 @@ export default function App() {
   }
 
   function openChat() {
+    // Snapshot selection now, before chat input takes focus and clears it.
+    const sel = window.getSelection()?.toString() ?? '';
+    if (sel.trim().length > 0) {
+      lastSelectionRef.current = sel;
+    }
     const w = document.documentElement.clientWidth;
     const h = document.documentElement.clientHeight;
     const isLeftHalf = position.x + BUBBLE_SIZE / 2 < w / 2;

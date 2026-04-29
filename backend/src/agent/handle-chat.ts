@@ -76,6 +76,16 @@ export async function handleChatRequest(
     return;
   }
 
+  console.log(
+    `[chat] pageContext: ${
+      msg.pageContext
+        ? `hasSelection=${!!msg.pageContext.selectedText} selLen=${
+            msg.pageContext.selectedText?.length ?? 0
+          }`
+        : 'none'
+    }`,
+  );
+
   let userPrompt = msg.text;
   if (msg.pageContext) {
     const lines: string[] = [
